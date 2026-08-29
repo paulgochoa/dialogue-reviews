@@ -538,35 +538,13 @@
     sizeConfettiCanvas();
     // exact default palette used by canvas-confetti (confirmed live in Fillout's own bundle)
     const colors = ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'];
+    const center = { x: 0.5, y: 0.5 };
 
-    // big central burst
-    myConfetti({ particleCount: 140, spread: 130, startVelocity: 55, origin: { x: 0.5, y: 0.5 }, colors, scalar: 1.1 });
-
-    // two corner cannons aimed across the whole screen
-    myConfetti({ particleCount: 90, spread: 90, startVelocity: 60, angle: 60, origin: { x: 0, y: 0.9 }, colors });
-    myConfetti({ particleCount: 90, spread: 90, startVelocity: 60, angle: 120, origin: { x: 1, y: 0.9 }, colors });
-
-    // rain of confetti falling from across the entire top edge, staggered, to cover the full page top-to-bottom
-    let rainCount = 0;
-    const rainInterval = setInterval(() => {
-      myConfetti({
-        particleCount: 18,
-        startVelocity: 0,
-        ticks: 260,
-        gravity: 0.7,
-        spread: 360,
-        origin: { x: Math.random(), y: -0.1 },
-        colors,
-        scalar: 0.9
-      });
-      rainCount++;
-      if (rainCount > 14) clearInterval(rainInterval);
-    }, 140);
-
-    // a couple more staggered corner bursts so it keeps filling in
-    setTimeout(() => myConfetti({ particleCount: 70, spread: 100, angle: 60, startVelocity: 50, origin: { x: 0.1, y: 0.6 }, colors }), 300);
-    setTimeout(() => myConfetti({ particleCount: 70, spread: 100, angle: 120, startVelocity: 50, origin: { x: 0.9, y: 0.6 }, colors }), 300);
-    setTimeout(() => myConfetti({ particleCount: 100, spread: 160, startVelocity: 45, origin: { x: 0.5, y: 0.3 }, colors }), 500);
+    // everything fires from dead-center, in every direction (spread:360), with enough
+    // velocity/particles/lifetime to reach every edge of the screen.
+    myConfetti({ particleCount: 220, spread: 360, startVelocity: 65, ticks: 300, gravity: 0.85, origin: center, colors, scalar: 1.1 });
+    setTimeout(() => myConfetti({ particleCount: 160, spread: 360, startVelocity: 55, ticks: 280, gravity: 0.85, origin: center, colors, scalar: 1 }), 200);
+    setTimeout(() => myConfetti({ particleCount: 140, spread: 360, startVelocity: 45, ticks: 260, gravity: 0.85, origin: center, colors, scalar: 0.9 }), 400);
   }
 
   buildStars();
