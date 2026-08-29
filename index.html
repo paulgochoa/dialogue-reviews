@@ -3,416 +3,538 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dialogue — Reviews &amp; Giveaway</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>Dialogue Review Form</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --cream:#FAF6F0;
-    --card:#FFFFFF;
-    --ink:#2B2320;
-    --maroon:#7A2E2E;
-    --maroon-dark:#5E2222;
-    --gold:#C9A227;
-    --muted:#8A7F76;
-    --border:#E7DED3;
-    --radius:14px;
+    --bg: #635240;
+    --track: rgba(255,255,255,.2);
+    --field-bg: rgba(255,255,255,.09);
+    --field-border: rgba(255,255,255,.2);
+    --field-border-focus: #FFFFFF;
+    --ink: #FFFFFF;
+    --muted: rgba(255,255,255,.55);
+    --muted-btn-text: rgba(255,255,255,.8);
+    --gold: #F2B233;
+    --error: #F87171;
+    --card-cream: #F1E7D6;
+    --card-ink: #3A2E22;
   }
   *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
   body{
-    margin:0;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--cream);
+    background:var(--bg);
     color:var(--ink);
-    line-height:1.5;
-  }
-  h1,h2,h3{
-    font-family:Georgia,"Times New Roman",serif;
-    margin:0 0 .4em 0;
-  }
-  .wrap{max-width:880px;margin:0 auto;padding:0 20px;}
-
-  /* Banner */
-  .banner{
-    background:var(--maroon);
-    color:#fff;
-    text-align:center;
-    padding:12px 16px;
-    font-size:.95rem;
-  }
-  .banner strong{color:var(--gold);}
-
-  /* Hero */
-  .hero{
-    text-align:center;
-    padding:56px 20px 40px;
-  }
-  .hero h1{font-size:2.2rem;color:var(--maroon-dark);}
-  .hero p{color:var(--muted);font-size:1.05rem;max-width:560px;margin:0 auto;}
-
-  nav.tabs{
-    display:flex;
-    justify-content:center;
-    gap:8px;
-    flex-wrap:wrap;
-    margin:28px 0 40px;
-  }
-  nav.tabs a{
-    text-decoration:none;
-    color:var(--maroon-dark);
-    background:var(--card);
-    border:1px solid var(--border);
-    padding:8px 18px;
-    border-radius:999px;
-    font-size:.92rem;
-  }
-  nav.tabs a:hover{border-color:var(--maroon);}
-
-  section{padding:40px 0;}
-  section h2{color:var(--maroon-dark);font-size:1.5rem;text-align:center;}
-  section > .sub{text-align:center;color:var(--muted);margin-bottom:28px;}
-
-  /* Card */
-  .card{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:24px;
+    font-family:'Inter','Helvetica Neue',Helvetica,Arial,sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
   }
 
-  /* Form */
-  form{display:flex;flex-direction:column;gap:16px;max-width:520px;margin:0 auto;}
-  label{font-size:.88rem;font-weight:600;color:var(--ink);margin-bottom:6px;display:block;}
-  input[type=text],input[type=email],textarea,input[type=file]{
-    width:100%;
-    padding:11px 12px;
-    border:1px solid var(--border);
-    border-radius:10px;
-    font-size:1rem;
-    font-family:inherit;
-    background:#fff;
-    color:var(--ink);
+  /* top progress bar */
+  #progressTrack{
+    position:fixed; top:0; left:0; width:100%; height:5px;
+    background:var(--track); z-index:100;
   }
-  textarea{resize:vertical;min-height:90px;}
-  input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
-
-  .stars{display:flex;gap:6px;font-size:1.8rem;cursor:pointer;user-select:none;}
-  .stars span{color:var(--border);transition:color .1s;}
-  .stars span.active{color:var(--gold);}
-
-  button[type=submit]{
-    background:var(--maroon);
-    color:#fff;
-    border:none;
-    padding:13px 20px;
-    border-radius:10px;
-    font-size:1rem;
-    font-weight:600;
-    cursor:pointer;
+  #progressFill{
+    height:100%; width:0%; background:#fff;
+    transition:width .4s ease;
   }
-  button[type=submit]:hover{background:var(--maroon-dark);}
-  button[type=submit]:disabled{opacity:.6;cursor:not-allowed;}
 
-  .msg{font-size:.92rem;padding:10px 14px;border-radius:10px;display:none;}
-  .msg.show{display:block;}
-  .msg.ok{background:#EAF6EC;color:#256B33;}
-  .msg.err{background:#FBEAEA;color:#96271F;}
+  /* logo, top right */
+  .logo-badge{
+    position:fixed; top:16px; right:16px; z-index:100;
+    width:56px; height:56px; border-radius:50%; overflow:hidden;
+    box-shadow:0 1px 4px rgba(0,0,0,.25);
+  }
+  .logo-badge img{width:100%; height:100%; display:block; object-fit:cover;}
 
-  /* Reviews wall */
-  #reviewsGrid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-    gap:18px;
+  #wizard{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding:90px 20px 40px;
   }
-  .review-card{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:var(--radius);
-    padding:18px;
+  .step{
+    display:none; width:100%; max-width:632px; text-align:center;
   }
-  .review-card .stars-static{color:var(--gold);font-size:1.1rem;margin-bottom:8px;}
-  .review-card .rname{font-weight:700;margin-top:10px;}
-  .review-card .rdate{color:var(--muted);font-size:.8rem;}
-  .review-card img{
-    width:100%;
-    height:150px;
-    object-fit:cover;
-    border-radius:10px;
-    margin-bottom:10px;
-  }
-  #reviewsEmpty,#reviewsLoading{text-align:center;color:var(--muted);}
+  .step.active{display:block;}
 
-  footer{
-    text-align:center;
-    color:var(--muted);
-    font-size:.85rem;
-    padding:30px 20px 50px;
+  .icon-badge{
+    font-size:46px; line-height:1; margin:0 auto 20px;
+  }
+  h1.hero{font-size:38px; font-weight:600; margin:0 0 16px; line-height:1.2;}
+  p.hero-desc{font-size:20px; font-weight:400; line-height:26px; color:var(--ink); max-width:520px; margin:0 auto 28px;}
+
+  /* group/section header (covers multiple fields, e.g. "Tell us about yourself") */
+  h1.group-title{font-size:30px; font-weight:600; margin:0 0 24px; text-align:center;}
+
+  /* single-question title (matches Fillout's own question label size) */
+  h2.qtitle{font-size:24px; font-weight:500; margin:0 0 4px; text-align:left;}
+  p.qsub{font-size:18px; font-weight:500; color:var(--muted); margin:0 0 16px; text-align:left;}
+
+  .field-row{display:flex; gap:16px; margin-bottom:20px;}
+  .field{flex:1; text-align:left;}
+  .field label{display:block; font-size:24px; font-weight:500; margin-bottom:10px;}
+  .field .req{color:var(--muted);}
+
+  input[type=text], input[type=email]{
+    width:100%; background:var(--field-bg); border:1px solid var(--field-border);
+    border-radius:9999px; color:var(--ink); font-family:inherit;
+    font-size:16px; padding:12px 20px; outline:none; transition:border-color .15s, border-width .15s;
+  }
+  input[type=text]:focus, input[type=email]:focus{border:2px solid var(--field-border-focus); padding:11px 19px;}
+  #email{font-size:20px; padding-top:14px; padding-bottom:14px;}
+  #email:focus{padding-top:13px; padding-bottom:13px;}
+  input.with-icon{padding-left:52px;}
+  input.with-icon:focus{padding-left:51px;}
+  .input-wrap{position:relative;}
+  .input-wrap .icon{position:absolute; left:18px; top:50%; transform:translateY(-50%); display:flex;}
+
+  textarea{
+    width:100%; background:var(--field-bg); border:1px solid var(--field-border);
+    border-radius:18px; color:var(--ink); font-family:inherit; font-size:20px; line-height:28px;
+    padding:12px 16px; height:130px; resize:vertical; outline:none; transition:border-color .15s, border-width .15s;
+  }
+  textarea:focus{border:2px solid var(--field-border-focus); padding:11px 15px;}
+  textarea::placeholder, input::placeholder{color:rgba(255,255,255,.45);}
+
+  /* star rating */
+  .stars{display:flex; gap:10px; margin:14px 0 24px; justify-content:flex-start;}
+  .star-btn{
+    background:none; border:none; padding:2px; cursor:pointer; line-height:0;
+  }
+  .star-btn svg{width:34px; height:34px; stroke:rgba(255,255,255,.45); stroke-width:1.5; fill:none;
+    stroke-linejoin:round; stroke-linecap:round;}
+  .star-btn.filled svg, .star-btn.hovered svg{fill:var(--gold); stroke:var(--gold);}
+
+  /* file upload box */
+  .upload-box{
+    border:1px dashed rgba(255,255,255,.35); border-radius:18px;
+    padding:18px; margin-bottom:14px; transition:border-color .15s, background .15s;
+  }
+  .upload-box:hover{border-color:rgba(255,255,255,.6);}
+  .upload-prompt{padding:18px 16px; text-align:center; cursor:pointer; color:rgba(255,255,255,.85);}
+  .upload-prompt .folder-icon{font-size:20px; margin-bottom:8px;}
+  .upload-prompt a{color:#fff; text-decoration:underline;}
+
+  .upload-row{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+  .thumb{position:relative; width:90px; height:90px; border-radius:14px; overflow:hidden; flex-shrink:0; background:#000;}
+  .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .thumb .thumb-remove{
+    position:absolute; top:3px; right:3px; width:22px; height:22px; border-radius:50%;
+    background:rgba(0,0,0,.6); color:#fff; border:none; font-size:12px; padding:0;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .thumb .thumb-remove:hover{background:rgba(0,0,0,.85);}
+  .add-tile{
+    width:90px; height:90px; border-radius:14px; border:1px dashed rgba(255,255,255,.4);
+    background:none; color:#fff; font-size:32px; cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; transition:border-color .15s;
+  }
+  .add-tile:hover{border-color:#fff;}
+  .upload-counter{margin-left:auto; font-size:13px; color:rgba(255,255,255,.6); white-space:nowrap;}
+
+  /* choice pills (edition question) */
+  .choice-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0 24px;}
+  .choice{
+    background:var(--field-bg); border:1px solid var(--field-border); border-radius:9999px;
+    padding:14px 20px; display:flex; align-items:center; gap:12px; cursor:pointer;
+    font-size:20px; text-align:left; transition:background .15s, border-color .15s, border-width .15s;
+  }
+  .choice:hover{background:rgba(255,255,255,.14);}
+  .choice.selected{border:2px solid #fff; background:rgba(255,255,255,.16); padding:13px 19px;}
+  .choice .dot{width:16px; height:16px; border-radius:50%; border:1px solid rgba(255,255,255,.5); flex-shrink:0;}
+  .choice.selected .dot{border-color:#fff; background:radial-gradient(circle,#fff 40%,transparent 45%);}
+
+  .error{color:var(--error); font-size:14px; text-align:left; margin:-8px 0 16px; display:flex; gap:6px; align-items:center;}
+
+  .btn-row{display:flex; gap:12px; justify-content:center; margin-top:8px;}
+  button.pill{
+    font-family:inherit; font-size:20px; font-weight:500; border:none; cursor:pointer;
+    border-radius:9999px; padding:10px 30px; transition:background .15s, color .15s, transform .1s;
+  }
+  button.pill.primary{background:#fff; color:#111827; box-shadow:0 1px 3px rgba(0,0,0,.15);}
+  button.pill.primary:hover:not(:disabled){background:#EDEDED;}
+  button.pill.primary:active:not(:disabled){transform:scale(.97);}
+  button.pill.primary:disabled{opacity:.5; cursor:not-allowed;}
+  button.pill.secondary{background:var(--field-bg); color:var(--muted-btn-text); border:1px solid rgba(255,255,255,.25);}
+  button.pill.secondary:hover{background:rgba(255,255,255,.18); color:#fff; border-color:rgba(255,255,255,.4);}
+
+  /* step transition (swipe-fade to the left) */
+  .step{opacity:1; transform:translateX(0); transition:opacity .32s ease, transform .32s ease;}
+
+  /* ================= confetti canvas ================= */
+  #confettiCanvas{position:fixed; inset:0; pointer-events:none; z-index:200;}
+
+  /* ================= mobile ================= */
+  @media(max-width:640px){
+    #wizard{padding:80px 16px 32px;}
+    h1.hero{font-size:28px;}
+    p.hero-desc{font-size:17px; line-height:23px;}
+    h1.group-title{font-size:24px;}
+    h2.qtitle{font-size:20px;}
+    .field label{font-size:18px;}
+    .field-row{flex-direction:column; gap:16px;}
+    .choice-grid{grid-template-columns:1fr;}
+    .choice{font-size:17px;}
+    button.pill{font-size:17px; padding:10px 22px;}
+    .logo-badge{width:44px; height:44px; top:12px; right:12px;}
+    .star-btn svg{width:28px; height:28px;}
+    .thumb, .add-tile{width:75px; height:75px;}
   }
 </style>
 </head>
 <body>
 
-  <div class="banner">
-    🎉 Leave a review to enter our <strong>1st Anniversary Giveaway</strong> — ends September 19!
+<div id="progressTrack"><div id="progressFill"></div></div>
+<div class="logo-badge"><img src="data:image/jpeg;base64,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" alt="Dialogue"></div>
+
+<div id="wizard">
+
+  <!-- Step 0: intro -->
+  <div class="step active" data-step="0">
+    <div class="icon-badge">💬</div>
+    <h1 class="hero">Dialogue Review Form</h1>
+    <p class="hero-desc">Whether you purchased Dialogue yourself or simply got to play it with friends, we'd love to hear about your experience! It only takes five minutes.</p>
+    <div class="btn-row"><button class="pill primary" onclick="goNext()">Let's go</button></div>
   </div>
 
-  <div class="hero">
-    <h1>Dialogue</h1>
-    <p>100 conversation prompts made to bring you closer — to God, and to the people across the table.</p>
-  </div>
-
-  <div class="wrap">
-    <nav class="tabs">
-      <a href="#reviews">See Reviews</a>
-      <a href="#leave-review">Leave a Review</a>
-      <a href="#feedback">Give Feedback</a>
-    </nav>
-
-    <!-- LEAVE A REVIEW -->
-    <section id="leave-review">
-      <h2>Leave a Review</h2>
-      <div class="sub">Share your experience — approved reviews will appear below, and every review is an entry into our anniversary giveaway.</div>
-      <div class="card">
-        <form id="reviewForm">
-          <div>
-            <label for="rName">Your name</label>
-            <input type="text" id="rName" required maxlength="80" placeholder="Juan Dela Cruz" />
-          </div>
-
-          <div>
-            <label>Your rating</label>
-            <div class="stars" id="starPicker" data-rating="0">
-              <span data-val="1">★</span>
-              <span data-val="2">★</span>
-              <span data-val="3">★</span>
-              <span data-val="4">★</span>
-              <span data-val="5">★</span>
-            </div>
-          </div>
-
-          <div>
-            <label for="rText">Your review</label>
-            <textarea id="rText" required maxlength="1000" placeholder="Tell us what you loved about Dialogue..."></textarea>
-          </div>
-
-          <div>
-            <label for="rPhoto">Photo (optional)</label>
-            <input type="file" id="rPhoto" accept="image/*" />
-          </div>
-
-          <button type="submit" id="reviewSubmitBtn">Submit Review</button>
-          <div class="msg" id="reviewMsg"></div>
-        </form>
+  <!-- Step 1: name -->
+  <div class="step" data-step="1">
+    <h1 class="group-title">Tell us about yourself</h1>
+    <div class="field-row">
+      <div class="field">
+        <label>First Name <span class="req">*</span></label>
+        <input type="text" id="firstName" placeholder="">
       </div>
-    </section>
-
-    <!-- REVIEWS WALL -->
-    <section id="reviews">
-      <h2>What Customers Are Saying</h2>
-      <div class="sub">Real reviews from real players.</div>
-      <div id="reviewsLoading">Loading reviews…</div>
-      <div id="reviewsEmpty" style="display:none;">No reviews yet — be the first!</div>
-      <div id="reviewsGrid"></div>
-    </section>
-
-    <!-- FEEDBACK -->
-    <section id="feedback">
-      <h2>Help Us Improve</h2>
-      <div class="sub">Tell us what to fix, and what you'd love to see in the next version of Dialogue.</div>
-      <div class="card">
-        <form id="feedbackForm">
-          <div>
-            <label for="fName">Your name (optional)</label>
-            <input type="text" id="fName" maxlength="80" placeholder="Juan Dela Cruz" />
-          </div>
-          <div>
-            <label for="fImprove">What could we improve?</label>
-            <textarea id="fImprove" maxlength="1000" placeholder="Packaging, pricing, prompt topics, anything..."></textarea>
-          </div>
-          <div>
-            <label for="fNext">What should we create next?</label>
-            <textarea id="fNext" maxlength="1000" placeholder="A new edition, a travel version, a kids version..."></textarea>
-          </div>
-          <button type="submit" id="feedbackSubmitBtn">Send Feedback</button>
-          <div class="msg" id="feedbackMsg"></div>
-        </form>
+      <div class="field">
+        <label>Last Name <span class="req">*</span></label>
+        <input type="text" id="lastName" placeholder="">
       </div>
-    </section>
+    </div>
+    <div class="error" id="err1" style="display:none;">⚠ Field is required</div>
+    <div class="btn-row"><button class="pill secondary" onclick="goBack()">← Back</button><button class="pill primary" onclick="goNext(1)">Next →</button></div>
   </div>
 
-  <footer>Dialogue &middot; Conversation cards made with love &middot; dialoguecards.co</footer>
+  <!-- Step 2: email -->
+  <div class="step" data-step="2">
+    <h2 class="qtitle" style="text-align:center;">What's your email? <span class="req">*</span></h2>
+    <div class="input-wrap" style="margin-top:20px;">
+      <span class="icon">
+        <svg width="26" height="26" viewBox="0 0 24 24">
+          <rect x="2" y="4" width="20" height="16" rx="3" fill="#fff"/>
+          <path d="M2 6.5 12 14 22 6.5" fill="none" stroke="var(--bg)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 4.8 12 12.2 22 4.8" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <input type="email" id="email" class="with-icon" placeholder="">
+    </div>
+    <div class="error" id="err2" style="display:none;">⚠ Field is required</div>
+    <div class="btn-row" style="margin-top:20px;"><button class="pill secondary" onclick="goBack()">← Back</button><button class="pill primary" onclick="goNext(2)">Next →</button></div>
+  </div>
 
+  <!-- Step 3: rating + review -->
+  <div class="step" data-step="3">
+    <h2 class="qtitle">How would you rate our product? <span class="req">*</span></h2>
+    <div class="stars" id="starRow"></div>
+    <h2 class="qtitle">Leave us a review! What did you think of Dialogue? <span class="req">*</span></h2>
+    <textarea id="reviewText" placeholder="What did you enjoy the most?" style="margin-top:12px;"></textarea>
+    <div class="error" id="err3" style="display:none;">⚠ Field is required</div>
+    <div class="btn-row" style="margin-top:20px;"><button class="pill secondary" onclick="goBack()">← Back</button><button class="pill primary" onclick="goNext(3)">Next →</button></div>
+  </div>
+
+  <!-- Step 4: photo -->
+  <div class="step" data-step="4">
+    <h2 class="qtitle" style="text-align:center;">Share a photo with us! <span class="req">*</span></h2>
+    <div class="upload-box" id="uploadBox" style="margin-top:20px;">
+      <div class="upload-prompt" id="uploadPrompt" onclick="document.getElementById('photoInput').click()">
+        <div class="folder-icon">📁</div>
+        <div>Drag &amp; drop a file or <a>browse</a></div>
+      </div>
+      <div class="upload-row" id="uploadRow" style="display:none;">
+        <div class="thumb-strip" id="thumbStrip" style="display:contents;"></div>
+        <button type="button" class="add-tile" id="addTile" onclick="document.getElementById('photoInput').click()">+</button>
+        <span class="upload-counter" id="uploadCounter"></span>
+      </div>
+    </div>
+    <input type="file" id="photoInput" accept="image/*" multiple style="display:none;" onchange="onPhotoChosen(this.files)">
+    <div class="error" id="err4" style="display:none;">⚠ Field is required</div>
+    <div class="btn-row"><button class="pill secondary" onclick="goBack()">← Back</button><button class="pill primary" onclick="goNext(4)">Next →</button></div>
+  </div>
+
+  <!-- Step 5: improve -->
+  <div class="step" data-step="5">
+    <h2 class="qtitle">How can we improve our product and service? <span class="req">*</span></h2>
+    <p class="qsub">Your honest feedback helps us make Dialogue better.</p>
+    <textarea id="improveText" placeholder=""></textarea>
+    <div class="error" id="err5" style="display:none;">⚠ Field is required</div>
+    <div class="btn-row" style="margin-top:20px;"><button class="pill secondary" onclick="goBack()">← Back</button><button class="pill primary" onclick="goNext(5)">Next →</button></div>
+  </div>
+
+  <!-- Step 6: edition -->
+  <div class="step" data-step="6">
+    <h2 class="qtitle" style="text-align:center;">What edition of Dialogue do you want to see next? <span class="req">*</span></h2>
+    <div class="choice-grid" id="editionGrid">
+      <div class="choice" data-v="Couples Edition ❤️"><span class="dot"></span>Couples Edition ❤️</div>
+      <div class="choice" data-v="Family Edition 🏠"><span class="dot"></span>Family Edition 🏠</div>
+      <div class="choice" data-v="Friendship Edition 🤝"><span class="dot"></span>Friendship Edition 🤝</div>
+      <div class="choice" data-v="Deeper Edition 👀"><span class="dot"></span>Deeper Edition 👀</div>
+      <div class="choice" data-v="Tagalog Edition 🇵🇭"><span class="dot"></span>Tagalog Edition 🇵🇭</div>
+      <div class="choice" data-v="Other"><span class="dot"></span>Other</div>
+    </div>
+    <div class="error" id="err6" style="display:none;">⚠ Field is required</div>
+    <div class="btn-row"><button class="pill secondary" onclick="goBack()">← Back</button><button class="pill primary" id="submitBtn" onclick="submitAll()">Submit</button></div>
+  </div>
+
+  <!-- thank you -->
+  <div class="step" id="thanks" data-step="7">
+    <h1 class="hero">Thank you for sharing! 🤎</h1>
+    <p class="hero-desc">Your review has been submitted and you're now entered into our 1st anniversary giveaway! 🎉</p>
+  </div>
+
+</div>
+
+<canvas id="confettiCanvas"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-  // ============================================================
-  // 1) PASTE YOUR SUPABASE PROJECT DETAILS HERE
-  //    Find them in Supabase: Settings (gear icon) -> API
-  //    - "Project URL"           -> SUPABASE_URL
-  //    - "Project API keys" -> "anon" "public" key -> SUPABASE_ANON_KEY
-  //    These two values are SAFE to be public in this file — that is
-  //    exactly what Row Level Security (RLS) is for.
-  // ============================================================
   const SUPABASE_URL = "https://ubykaaouxbvyjwjkjjfv.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_OgD7UbxsgFBf7jcUcN5TNA_MvbVHnwf";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const TOTAL_STEPS = 7;
+  let current = 0;
+  let rating = 0;
+  let chosenPhotos = []; // {file, url}
+  let chosenEdition = null;
+  let animating = false;
 
-  // ---------- Star rating picker ----------
-  const starPicker = document.getElementById('starPicker');
-  const starEls = [...starPicker.querySelectorAll('span')];
-  starEls.forEach(el => {
-    el.addEventListener('click', () => {
-      const val = Number(el.dataset.val);
-      starPicker.dataset.rating = val;
-      starEls.forEach(s => s.classList.toggle('active', Number(s.dataset.val) <= val));
+  const STAR_SVG = `<svg viewBox="0 0 24 24"><path d="M12 2.6 14.8 8.9 21.6 9.7 16.5 14.3 17.9 21 12 17.5 6.1 21 7.5 14.3 2.4 9.7 9.2 8.9 Z"/></svg>`;
+
+  function buildStars(){
+    const row = document.getElementById('starRow');
+    row.innerHTML = '';
+    for(let i=1;i<=5;i++){
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'star-btn';
+      b.dataset.v = i;
+      b.innerHTML = STAR_SVG;
+      b.addEventListener('click', () => { rating = i; refreshStars(); });
+      row.appendChild(b);
+    }
+    // event delegation on the row itself avoids the leave/enter flicker
+    // that happens when the pointer crosses from one star button to the next
+    row.addEventListener('mouseover', e => {
+      const btn = e.target.closest('.star-btn');
+      if(btn) previewStars(parseInt(btn.dataset.v));
+    });
+    row.addEventListener('mouseleave', () => refreshStars());
+  }
+  function refreshStars(){
+    document.querySelectorAll('.star-btn').forEach(b => {
+      b.classList.toggle('filled', parseInt(b.dataset.v) <= rating);
+      b.classList.remove('hovered');
+    });
+  }
+  function previewStars(n){
+    document.querySelectorAll('.star-btn').forEach(b => {
+      b.classList.toggle('hovered', parseInt(b.dataset.v) <= n);
+    });
+  }
+
+  function updateProgress(){
+    const pct = Math.min(100, Math.round((current / (TOTAL_STEPS - 1)) * 100));
+    document.getElementById('progressFill').style.width = pct + '%';
+  }
+
+  function showStep(n){
+    if(animating) return;
+    const dir = n > current ? 1 : -1;
+    const oldEl = document.querySelector('.step.active');
+    const newEl = document.querySelector(`.step[data-step="${n}"]`);
+    if(!newEl) return;
+    animating = true;
+
+    if(oldEl){
+      oldEl.style.transform = `translateX(${dir > 0 ? -40 : 40}px)`;
+      oldEl.style.opacity = '0';
+    }
+
+    setTimeout(() => {
+      if(oldEl){ oldEl.classList.remove('active'); oldEl.style.transition = 'none'; oldEl.style.transform = 'translateX(0)'; oldEl.style.opacity = '1'; }
+      newEl.classList.add('active');
+      newEl.style.transition = 'none';
+      newEl.style.transform = `translateX(${dir > 0 ? 40 : -40}px)`;
+      newEl.style.opacity = '0';
+      // force reflow then animate in
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          newEl.style.transition = 'opacity .32s ease, transform .32s ease';
+          newEl.style.transform = 'translateX(0)';
+          newEl.style.opacity = '1';
+          if(oldEl) oldEl.style.transition = '';
+          current = n;
+          updateProgress();
+          window.scrollTo({top:0, behavior:'smooth'});
+          setTimeout(() => { animating = false; }, 340);
+        });
+      });
+    }, 320);
+  }
+
+  function goBack(){ if(current > 0) showStep(current - 1); }
+
+  function hideErr(n){ const e = document.getElementById('err'+n); if(e) e.style.display='none'; }
+  function showErr(n){ const e = document.getElementById('err'+n); if(e) e.style.display='flex'; }
+
+  function goNext(fromStep){
+    if(fromStep === 1){
+      const fn = document.getElementById('firstName').value.trim();
+      const ln = document.getElementById('lastName').value.trim();
+      if(!fn || !ln){ showErr(1); return; }
+      hideErr(1);
+    }
+    if(fromStep === 2){
+      const em = document.getElementById('email').value.trim();
+      if(!em || !em.includes('@')){ showErr(2); return; }
+      hideErr(2);
+    }
+    if(fromStep === 3){
+      const rv = document.getElementById('reviewText').value.trim();
+      if(rating === 0 || !rv){ showErr(3); return; }
+      hideErr(3);
+    }
+    if(fromStep === 4){
+      if(chosenPhotos.length === 0){ showErr(4); return; }
+      hideErr(4);
+    }
+    if(fromStep === 5){
+      const imp = document.getElementById('improveText').value.trim();
+      if(!imp){ showErr(5); return; }
+      hideErr(5);
+    }
+    showStep(current + 1);
+  }
+
+  // ---------- photo ----------
+  const MAX_PHOTOS = 5;
+  function renderPhotoList(){
+    const prompt = document.getElementById('uploadPrompt');
+    const row = document.getElementById('uploadRow');
+    const strip = document.getElementById('thumbStrip');
+    if(chosenPhotos.length === 0){
+      prompt.style.display = 'block';
+      row.style.display = 'none';
+      return;
+    }
+    prompt.style.display = 'none';
+    row.style.display = 'flex';
+    strip.innerHTML = chosenPhotos.map((p, i) => `
+      <div class="thumb">
+        <img src="${p.url}" alt="">
+        <button type="button" class="thumb-remove" onclick="removePhoto(${i})">✕</button>
+      </div>
+    `).join('');
+    const canAddMore = chosenPhotos.length < MAX_PHOTOS;
+    document.getElementById('addTile').style.display = canAddMore ? 'flex' : 'none';
+    document.getElementById('uploadCounter').textContent = `${chosenPhotos.length}/${MAX_PHOTOS}`;
+    hideErr(4);
+  }
+  function onPhotoChosen(fileList){
+    const remaining = MAX_PHOTOS - chosenPhotos.length;
+    [...fileList].slice(0, remaining).forEach(file => {
+      chosenPhotos.push({ file, url: URL.createObjectURL(file) });
+    });
+    renderPhotoList();
+    document.getElementById('photoInput').value = '';
+  }
+  function removePhoto(i){
+    chosenPhotos.splice(i, 1);
+    renderPhotoList();
+  }
+  const uploadBoxEl = document.getElementById('uploadBox');
+  uploadBoxEl.addEventListener('dragover', e => e.preventDefault());
+  uploadBoxEl.addEventListener('drop', e => {
+    e.preventDefault();
+    if(e.dataTransfer.files.length) onPhotoChosen(e.dataTransfer.files);
+  });
+
+  // ---------- edition choices ----------
+  document.querySelectorAll('.choice').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.choice').forEach(x => x.classList.remove('selected'));
+      c.classList.add('selected');
+      chosenEdition = c.dataset.v;
+      hideErr(6);
     });
   });
 
-  function showMsg(el, text, ok){
-    el.textContent = text;
-    el.className = 'msg show ' + (ok ? 'ok' : 'err');
-  }
+  async function submitAll(){
+    if(!chosenEdition){ showErr(6); return; }
+    hideErr(6);
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
 
-  // ---------- Review submission ----------
-  const reviewForm = document.getElementById('reviewForm');
-  const reviewSubmitBtn = document.getElementById('reviewSubmitBtn');
-  const reviewMsg = document.getElementById('reviewMsg');
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const fullName = (firstName + ' ' + lastName).trim();
+    const reviewText = document.getElementById('reviewText').value.trim();
+    const improveText = document.getElementById('improveText').value.trim();
 
-  reviewForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const name = document.getElementById('rName').value.trim();
-    const rating = Number(starPicker.dataset.rating || 0);
-    const text = document.getElementById('rText').value.trim();
-    const photoFile = document.getElementById('rPhoto').files[0];
-
-    if (!name || !text || rating < 1) {
-      showMsg(reviewMsg, 'Please add your name, a rating, and a review.', false);
-      return;
-    }
-
-    reviewSubmitBtn.disabled = true;
-    reviewSubmitBtn.textContent = 'Submitting…';
-
-    try {
-      let photo_url = null;
-
-      if (photoFile) {
-        const path = `${Date.now()}-${photoFile.name}`.replace(/\s+/g, '_');
-        const { error: uploadError } = await sb.storage
-          .from('review-photos')
-          .upload(path, photoFile);
-        if (uploadError) throw uploadError;
-
+    try{
+      let photoUrl = null;
+      if(chosenPhotos.length){
+        const file = chosenPhotos[0].file;
+        const path = `${Date.now()}-${file.name}`;
+        const { error: upErr } = await sb.storage.from('review-photos').upload(path, file);
+        if(upErr) throw upErr;
         const { data: pub } = sb.storage.from('review-photos').getPublicUrl(path);
-        photo_url = pub.publicUrl;
+        photoUrl = pub.publicUrl;
       }
 
-      const { error } = await sb.from('reviews').insert({
-        name,
-        rating,
-        review: text,
-        photo_url,
+      const { error: revErr } = await sb.from('reviews').insert({
+        name: fullName,
+        rating: rating,
+        review: reviewText,
+        photo_url: photoUrl,
         approved: false,
         giveaway_entry: true
       });
-      if (error) throw error;
+      if(revErr) throw revErr;
 
-      showMsg(reviewMsg, "Thank you! Your review was submitted and is pending approval. You're entered in the giveaway. 🎉", true);
-      reviewForm.reset();
-      starPicker.dataset.rating = 0;
-      starEls.forEach(s => s.classList.remove('active'));
-
-    } catch (err) {
-      console.error(err);
-      showMsg(reviewMsg, 'Something went wrong submitting your review. Please try again.', false);
-    } finally {
-      reviewSubmitBtn.disabled = false;
-      reviewSubmitBtn.textContent = 'Submit Review';
-    }
-  });
-
-  // ---------- Feedback submission ----------
-  const feedbackForm = document.getElementById('feedbackForm');
-  const feedbackSubmitBtn = document.getElementById('feedbackSubmitBtn');
-  const feedbackMsg = document.getElementById('feedbackMsg');
-
-  feedbackForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const name = document.getElementById('fName').value.trim() || null;
-    const improve_feedback = document.getElementById('fImprove').value.trim();
-    const next_version_idea = document.getElementById('fNext').value.trim();
-
-    if (!improve_feedback && !next_version_idea) {
-      showMsg(feedbackMsg, 'Please share at least one thought before submitting.', false);
-      return;
-    }
-
-    feedbackSubmitBtn.disabled = true;
-    feedbackSubmitBtn.textContent = 'Sending…';
-
-    try {
-      const { error } = await sb.from('feedback').insert({
-        name, improve_feedback, next_version_idea
+      const { error: fbErr } = await sb.from('feedback').insert({
+        name: fullName,
+        improve_feedback: improveText,
+        next_version_idea: chosenEdition
       });
-      if (error) throw error;
+      if(fbErr) throw fbErr;
 
-      showMsg(feedbackMsg, 'Thank you for your feedback!', true);
-      feedbackForm.reset();
-    } catch (err) {
-      console.error(err);
-      showMsg(feedbackMsg, 'Something went wrong sending your feedback. Please try again.', false);
-    } finally {
-      feedbackSubmitBtn.disabled = false;
-      feedbackSubmitBtn.textContent = 'Send Feedback';
-    }
-  });
-
-  // ---------- Load approved reviews ----------
-  async function loadReviews(){
-    const grid = document.getElementById('reviewsGrid');
-    const loading = document.getElementById('reviewsLoading');
-    const empty = document.getElementById('reviewsEmpty');
-
-    try {
-      const { data, error } = await sb
-        .from('reviews')
-        .select('*')
-        .eq('approved', true)
-        .order('created_at', { ascending: false })
-        .limit(60);
-
-      if (error) throw error;
-
-      loading.style.display = 'none';
-
-      if (!data || data.length === 0) {
-        empty.style.display = 'block';
-        return;
-      }
-
-      grid.innerHTML = data.map(r => `
-        <div class="review-card">
-          ${r.photo_url ? `<img src="${r.photo_url}" alt="Photo from ${escapeHtml(r.name)}" />` : ''}
-          <div class="stars-static">${'★'.repeat(r.rating || 0)}${'☆'.repeat(5 - (r.rating || 0))}</div>
-          <div>${escapeHtml(r.review || '')}</div>
-          <div class="rname">${escapeHtml(r.name || 'Anonymous')}</div>
-          <div class="rdate">${r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</div>
-        </div>
-      `).join('');
-
-    } catch (err) {
-      console.error(err);
-      loading.textContent = 'Could not load reviews right now.';
+      showStep(7);
+      setTimeout(fireConfetti, 380);
+    }catch(err){
+      alert('Something went wrong submitting your review: ' + (err.message || err));
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit';
     }
   }
 
-  function escapeHtml(str){
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
+  // ---------- confetti ----------
+  const myConfetti = (typeof confetti === 'function' && document.getElementById('confettiCanvas'))
+    ? confetti.create(document.getElementById('confettiCanvas'), { resize: true, useWorker: true })
+    : null;
+  function fireConfetti(){
+    if(!myConfetti) return;
+    const colors = ['#F2B233', '#F1E7D6', '#FFFFFF', '#A9C6A0'];
+    myConfetti({ particleCount: 110, spread: 100, startVelocity: 45, origin: { y: 0.6 }, colors });
+    setTimeout(() => myConfetti({ particleCount: 60, spread: 80, angle: 60, origin: { x: 0, y: 0.65 }, colors }), 180);
+    setTimeout(() => myConfetti({ particleCount: 60, spread: 80, angle: 120, origin: { x: 1, y: 0.65 }, colors }), 180);
   }
 
-  loadReviews();
+  buildStars();
+  updateProgress();
 </script>
 
 </body>
