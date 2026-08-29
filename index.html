@@ -164,7 +164,7 @@
   .step{opacity:1; transform:translateX(0); transition:opacity .32s ease, transform .32s ease;}
 
   /* ================= confetti canvas ================= */
-  #confettiCanvas{position:fixed; inset:0; pointer-events:none; z-index:200;}
+  #confettiCanvas{position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:200;}
 
   /* ================= mobile ================= */
   @media(max-width:640px){
@@ -522,11 +522,20 @@
   }
 
   // ---------- confetti ----------
-  const myConfetti = (typeof confetti === 'function' && document.getElementById('confettiCanvas'))
-    ? confetti.create(document.getElementById('confettiCanvas'), { resize: true, useWorker: true })
+  const confettiCanvasEl = document.getElementById('confettiCanvas');
+  function sizeConfettiCanvas(){
+    if(!confettiCanvasEl) return;
+    confettiCanvasEl.width = window.innerWidth;
+    confettiCanvasEl.height = window.innerHeight;
+  }
+  sizeConfettiCanvas();
+  window.addEventListener('resize', sizeConfettiCanvas);
+  const myConfetti = (typeof confetti === 'function' && confettiCanvasEl)
+    ? confetti.create(confettiCanvasEl, { resize: true, useWorker: true })
     : null;
   function fireConfetti(){
     if(!myConfetti) return;
+    sizeConfettiCanvas();
     // exact default palette used by canvas-confetti (confirmed live in Fillout's own bundle)
     const colors = ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42', '#ffa62d', '#ff36ff'];
 
