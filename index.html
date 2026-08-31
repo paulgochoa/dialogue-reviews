@@ -290,6 +290,11 @@
   <div class="step" id="thanks" data-step="7">
     <h1 class="hero">Thank you for sharing! 🤎</h1>
     <p class="hero-desc">Your review has been submitted and you're now entered into our 1st anniversary giveaway! 🎉</p>
+    <div id="discountReward" style="display:none; margin:0 auto; max-width:420px; padding:20px 24px; background:rgba(255,255,255,.09); border:1px solid rgba(255,255,255,.2); border-radius:18px;">
+      <p style="margin:0 0 8px; font-size:15px; color:var(--muted);">Thanks for including a photo! Here's ₱100 off your next order:</p>
+      <p id="discountCodeText" style="margin:0; font-size:26px; font-weight:700; letter-spacing:1px;"></p>
+      <p style="margin:10px 0 0; font-size:13px; color:var(--muted);">Valid for 6 months. Save this code — it won't be shown again.</p>
+    </div>
   </div>
 
 </div>
@@ -495,8 +500,11 @@
         photoUrl = pub.publicUrl;
       }
 
+      const email = document.getElementById('email').value.trim();
+
       const { error: revErr } = await sb.from('reviews').insert({
         name: fullName,
+        email: email,
         rating: rating,
         review: reviewText,
         photo_url: photoUrl,
@@ -512,6 +520,29 @@
         next_version_idea: chosenEdition
       });
       if(fbErr) throw fbErr;
+
+      let discountCode = null;
+      if(photoUrl){
+        try{
+          const discRes = await fetch(`${SUPABASE_URL}/functions/v1/generate-review-discount`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'apikey': SUPABASE_ANON_KEY
+            }
+          });
+          const discData = await discRes.json();
+          if(discRes.ok && discData.code) discountCode = discData.code;
+        }catch(discErr){
+          console.error('Discount code generation failed:', discErr);
+        }
+      }
+
+      if(discountCode){
+        document.getElementById('discountCodeText').textContent = discountCode;
+        document.getElementById('discountReward').style.display = 'block';
+      }
 
       showStep(7);
       setTimeout(fireConfetti, 380);
