@@ -22,6 +22,20 @@ Nothing here needs you to do anything manually. It all happens automatically, in
 
 ---
 
+## The Review Display Widget (Built, But Not Live Yet)
+
+There's a second piece to this system beyond the discount codes: a custom-built widget that displays those same reviews — photos, star ratings, names, and all — directly on your product pages, similar to what Loox already shows.
+
+**Current status: it works, but it is intentionally sitting in a draft and is NOT visible to real customers yet.**
+
+- **What it does:** Pulls reviews from the same database (Supabase) and displays them in a styled review section on your product page, positioned right below your existing Loox reviews.
+- **Where it lives:** Inside your Shopify theme files, as a file called `dialogue-custom-reviews.liquid`.
+- **Which theme:** A separate, unpublished draft theme named **"REVIEW DRAFT"** — this is completely different from your actual live theme (currently "Version ₱949"), so nothing here affects what customers see today.
+- **Why it's paused:** It was built and confirmed working, but deliberately held back for a full review before going live — the code is unusually large and is worth a closer look first to make sure it's clean before it's shown to real customers.
+- **To turn it on someday:** The "REVIEW DRAFT" theme would need to be reviewed and then published as the live theme (or this file copied into your live theme). Don't do this without a proper review first — ask whoever's helping you with the code to check it over beforehand.
+
+---
+
 ## Where Everything Lives
 
 | Piece | What it's for | Where to find it |
@@ -33,6 +47,7 @@ Nothing here needs you to do anything manually. It all happens automatically, in
 | **The discount-code generator** | The automation that talks to Shopify and creates the actual discount code | Also inside Supabase, called `generate-review-discount` |
 | **The Shopify app** | The permission-holder that lets the generator create discounts in your store | [Shopify Dev Dashboard → "Perkly"](https://dev.shopify.com/dashboard/173533356/apps/417440825345) |
 | **Your domain's address book** | Controls where `review.dialoguecards.co` points to | [Namecheap DNS settings](https://ap.www.namecheap.com/domains/domaincontrolpanel/dialoguecards.co/advancedns) |
+| **Review display widget (not live)** | Shows reviews with photos on product pages — currently paused | Inside Shopify → theme called "REVIEW DRAFT" (see section below) |
 
 Bookmark this table — it's the map to everything.
 
