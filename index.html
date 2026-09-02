@@ -511,45 +511,39 @@
 
       const email = document.getElementById('email').value.trim();
 
-      const { error: revErr } = await sb.from('reviews').insert({
-        name: fullName,
-        email: email,
-        rating: rating,
-        review: reviewText,
-        photo_url: photoUrl,
-        approved: rating === 5,
-        giveaway_entry: true,
-        product_handle: 'dialogue-conversation-cards-for-christians'
+      const subRes = await fetch(`${SUPABASE_URL}/functions/v1/generate-review-discount`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify({
+          name: fullName,
+          email: email,
+          rating: rating,
+          review: reviewText,
+          photo_url: photoUrl,
+          giveaway_entry: true,
+          product_handle: 'dialogue-conversation-cards-for-christians',
+          improve_feedback: improveText,
+          next_version_idea: chosenEdition
+        })
       });
-      if(revErr) throw revErr;
+      const subData = await subRes.json();
 
-      const { error: fbErr } = await sb.from('feedback').insert({
-        name: fullName,
-        improve_feedback: improveText,
-        next_version_idea: chosenEdition
-      });
-      if(fbErr) throw fbErr;
-
-      let discountCode = null;
-      if(photoUrl){
-        try{
-          const discRes = await fetch(`${SUPABASE_URL}/functions/v1/generate-review-discount`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-              'apikey': SUPABASE_ANON_KEY
-            }
-          });
-          const discData = await discRes.json();
-          if(discRes.ok && discData.code) discountCode = discData.code;
-        }catch(discErr){
-          console.error('Discount code generation failed:', discErr);
-        }
+      if(subData.blocked){
+        alert(subData.message || 'You currently have an active discount code. Kindly check your email for it.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+        return;
+      }
+      if(!subRes.ok){
+        throw new Error(subData.error || 'Something went wrong submitting your review.');
       }
 
-      if(discountCode){
-        document.getElementById('discountCodeText').textContent = discountCode;
+      if(subData.code){
+        document.getElementById('discountCodeText').textContent = subData.code;
         document.getElementById('discountReward').style.display = 'block';
       }
 
