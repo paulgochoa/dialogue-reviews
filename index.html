@@ -286,6 +286,7 @@
       <div class="choice" data-v="Tagalog Edition 🇵🇭"><span class="dot"></span>Tagalog Edition 🇵🇭</div>
       <div class="choice" data-v="Other"><span class="dot"></span>Other</div>
     </div>
+    <input type="text" id="otherEdition" placeholder="" style="display:none; margin:-8px 0 24px;">
     <div class="error" id="err6" style="display:none;">⚠ Field is required</div>
     <div class="btn-row"><button class="pill secondary" onclick="goBack()">← Back</button><button class="pill primary" id="submitBtn" onclick="submitAll()">Submit</button></div>
   </div>
@@ -481,12 +482,26 @@
       document.querySelectorAll('.choice').forEach(x => x.classList.remove('selected'));
       c.classList.add('selected');
       chosenEdition = c.dataset.v;
+      const otherInput = document.getElementById('otherEdition');
+      if(chosenEdition === 'Other'){
+        otherInput.style.display = 'block';
+        otherInput.value = '';
+        otherInput.focus();
+      }else{
+        otherInput.style.display = 'none';
+        otherInput.value = '';
+      }
       hideErr(6);
     });
   });
 
   async function submitAll(){
     if(!chosenEdition){ showErr(6); return; }
+    let editionAnswer = chosenEdition;
+    if(chosenEdition === 'Other'){
+      editionAnswer = document.getElementById('otherEdition').value.trim();
+      if(!editionAnswer){ showErr(6); return; }
+    }
     hideErr(6);
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
@@ -527,13 +542,13 @@
           giveaway_entry: true,
           product_handle: 'dialogue-conversation-cards-for-christians',
           improve_feedback: improveText,
-          next_version_idea: chosenEdition
+          next_version_idea: editionAnswer
         })
       });
       const subData = await subRes.json();
 
       if(subData.blocked){
-        alert(subData.message || 'You currently have an active discount code. Kindly check your email for it.');
+        alert(subData.message || 'You currently have an active discount code linked to your email. Kindly check your inbox for it. It must be used or expire before you can request a new one.');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit';
         return;
