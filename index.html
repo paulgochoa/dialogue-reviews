@@ -147,6 +147,10 @@
   .choice.selected{border:2px solid #fff; background:rgba(255,255,255,.16); padding:13px 19px;}
   .choice .dot{width:16px; height:16px; border-radius:50%; border:1px solid rgba(255,255,255,.5); flex-shrink:0;}
   .choice.selected .dot{border-color:#fff; background:radial-gradient(circle,#fff 40%,transparent 45%);}
+  .choice input.other-input{
+    background:none; border:none; outline:none; color:var(--ink); font-family:inherit;
+    font-size:20px; text-align:center; width:100%; padding:0; min-width:0;
+  }
 
   .error{color:var(--error); font-size:14px; text-align:center; margin:-8px 0 16px; display:flex; gap:6px; align-items:center; justify-content:center;}
 
@@ -180,6 +184,7 @@
     .field-row{flex-direction:column; gap:14px;}
     .choice-grid{grid-template-columns:1fr;}
     .choice{font-size:16px; padding:13px 16px;}
+    .choice input.other-input{font-size:16px;}
     button.pill{font-size:16px; padding:10px 20px;}
     .logo-badge{width:40px; height:40px; top:10px; right:10px;}
     .star-btn svg{width:27px; height:27px;}
@@ -284,9 +289,12 @@
       <div class="choice" data-v="Friendship Edition 🤝"><span class="dot"></span>Friendship Edition 🤝</div>
       <div class="choice" data-v="Deeper Edition 👀"><span class="dot"></span>Deeper Edition 👀</div>
       <div class="choice" data-v="Tagalog Edition 🇵🇭"><span class="dot"></span>Tagalog Edition 🇵🇭</div>
-      <div class="choice" data-v="Other"><span class="dot"></span>Other</div>
+      <div class="choice" data-v="Other">
+        <span class="dot"></span>
+        <span class="choice-label">Other</span>
+        <input type="text" class="other-input" id="otherEditionInput" style="display:none;">
+      </div>
     </div>
-    <input type="text" id="otherEdition" placeholder="" style="display:none; margin:-8px 0 24px;">
     <div class="error" id="err6" style="display:none;">⚠ Field is required</div>
     <div class="btn-row"><button class="pill secondary" onclick="goBack()">← Back</button><button class="pill primary" id="submitBtn" onclick="submitAll()">Submit</button></div>
   </div>
@@ -477,19 +485,33 @@
   });
 
   // ---------- edition choices ----------
+  const otherChoiceEl = document.querySelector('.choice[data-v="Other"]');
+  const otherInputEl = document.getElementById('otherEditionInput');
+
+  function resetOtherChoiceDisplay(){
+    otherChoiceEl.querySelector('.dot').style.display = '';
+    otherChoiceEl.querySelector('.choice-label').style.display = '';
+    otherInputEl.style.display = 'none';
+  }
+
   document.querySelectorAll('.choice').forEach(c => {
-    c.addEventListener('click', () => {
+    c.addEventListener('click', (e) => {
+      // already editing the Other field -- just let the click focus/place the
+      // cursor, don't reset what they've typed
+      if(c === otherChoiceEl && e.target === otherInputEl) return;
+
       document.querySelectorAll('.choice').forEach(x => x.classList.remove('selected'));
       c.classList.add('selected');
       chosenEdition = c.dataset.v;
-      const otherInput = document.getElementById('otherEdition');
-      if(chosenEdition === 'Other'){
-        otherInput.style.display = 'block';
-        otherInput.value = '';
-        otherInput.focus();
+
+      if(c === otherChoiceEl){
+        otherChoiceEl.querySelector('.dot').style.display = 'none';
+        otherChoiceEl.querySelector('.choice-label').style.display = 'none';
+        otherInputEl.style.display = 'block';
+        otherInputEl.value = '';
+        otherInputEl.focus();
       }else{
-        otherInput.style.display = 'none';
-        otherInput.value = '';
+        resetOtherChoiceDisplay();
       }
       hideErr(6);
     });
@@ -499,7 +521,7 @@
     if(!chosenEdition){ showErr(6); return; }
     let editionAnswer = chosenEdition;
     if(chosenEdition === 'Other'){
-      editionAnswer = document.getElementById('otherEdition').value.trim();
+      editionAnswer = otherInputEl.value.trim();
       if(!editionAnswer){ showErr(6); return; }
     }
     hideErr(6);
@@ -548,7 +570,7 @@
       const subData = await subRes.json();
 
       if(subData.blocked){
-        alert(subData.message || 'You currently have an active discount code linked to your email. Kindly check your inbox for it. It must be used or expire before you can request a new one.');
+        alert(subData.message || 'You currently have an active discount code linked to your email. Kindly check your inbox for it.\n\nIt must be used or expire before you can request a new one.');
         submitBtn.disabled = false;
         submitBtn.textContent = 'Submit';
         return;
